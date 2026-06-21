@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
   <title>PayMatch - Paystub vs Timesheet Checker</title>
+  <link rel="icon" type="image/png" href="images/ChatGPT%20Image%20Jun%2021,%202026,%2003_50_28%20PM%20favicon.png">
+  <link rel="apple-touch-icon" href="images/ChatGPT%20Image%20Jun%2021,%202026,%2003_50_28%20PM%20favicon.png">
   <link rel="stylesheet" href="style.css">
   <script defer src="vendor/pdf.min.js"></script>
   <script defer src="src/extractPdfText.js"></script>
@@ -20,7 +22,10 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">Paystub audit prototype</p>
-        <h1>PayMatch</h1>
+        <div class="brand-heading">
+          <img src="images/ChatGPT%20Image%20Jun%2021,%202026,%2003_50_28%20PM%20favicon.png" alt="" class="brand-icon">
+          <h1>PayMatch</h1>
+        </div>
         <p class="intro">Drop in a timesheet and paystub. The app reads what it can, lets you correct the fields, then checks hours, overtime, rates, and gross pay.</p>
       </div>
       <div class="status-stack">
