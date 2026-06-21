@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <title>PayMatch - Paystub vs Timesheet Checker</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="vendor/pdf.min.js"></script>
+  <script defer src="src/extractPdfText.js"></script>
+  <script defer src="src/parsePaystub.js"></script>
+  <script defer src="src/parseTimesheet.js"></script>
+  <script defer src="src/calculateExpectedPay.js"></script>
+  <script defer src="src/detectIssues.js"></script>
+  <script defer src="src/renderReport.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Paystub audit prototype</p>
+        <h1>PayMatch</h1>
+        <p class="intro">Drop in a timesheet and paystub. The app reads what it can, lets you correct the fields, then checks hours, overtime, rates, and gross pay.</p>
+      </div>
+      <div class="status-stack">
+        <button id="theme-toggle" class="ghost-button" type="button" aria-pressed="false">Dark</button>
+        <p id="status">Ready</p>
+      </div>
+    </header>
+
+    <section class="upload-grid" aria-label="Document uploads">
+      <article class="upload-panel">
+        <div class="panel-title">
+          <h2>Timesheet</h2>
+          <span id="timesheet-state" class="badge">Empty</span>
+        </div>
+        <button id="timesheet-drop" class="drop-zone" type="button">
+          <strong>Drop timesheet PDF</strong>
+          <span>or click to upload</span>
+        </button>
+        <input id="timesheet-input" type="file" accept="application/pdf,.pdf">
+        <p id="timesheet-name" class="file-name">No file selected</p>
+      </article>
+
+      <article class="upload-panel">
+        <div class="panel-title">
+          <h2>Paystub</h2>
+          <span id="paystub-state" class="badge">Empty</span>
+        </div>
+        <button id="paystub-drop" class="drop-zone" type="button">
+          <strong>Drop paystub PDF</strong>
+          <span>or click to upload</span>
+        </button>
+        <input id="paystub-input" type="file" accept="application/pdf,.pdf">
+        <p id="paystub-name" class="file-name">No file selected</p>
+      </article>
+    </section>
+
+    <section class="notice-panel" aria-label="Privacy and accuracy notice">
+      <h2>Private Testing Notice</h2>
+      <p>Privacy note: this prototype reads PDFs in your browser and does not upload them to a server. Do not use documents you are not comfortable testing with.</p>
+      <p>Review and correct the parsed fields before relying on the result. This tool provides an estimate only and is not legal, tax, payroll, or financial advice.</p>
+    </section>
+
+    <section class="workspace">
+      <aside class="editor-panel">
+        <div class="panel-title">
+          <h2>Parsed Fields</h2>
+          <div class="button-row">
+            <button id="sample-button" class="ghost-button" type="button">Load sample</button>
+            <button id="clear-button" class="ghost-button" type="button">Clear all</button>
+          </div>
+        </div>
+
+        <form id="audit-form">
+          <fieldset>
+            <legend>Employee and period</legend>
+            <label>Employee name<input id="employee-name" type="text" autocomplete="off"></label>
+            <label>Pay period start<input id="period-start" type="date"></label>
+            <label>Pay period end<input id="period-end" type="date"></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Timesheet</legend>
+            <label>Total hours<input id="timesheet-total-hours" type="number" min="0" step="0.01"></label>
+            <label>Regular hours<input id="timesheet-regular-hours" type="number" min="0" step="0.01"></label>
+            <label>Overtime hours<input id="timesheet-overtime-hours" type="number" min="0" step="0.01"></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Paystub</legend>
+            <label>Regular hours paid<input id="paystub-regular-hours" type="number" min="0" step="0.01"></label>
+            <label>Overtime hours paid<input id="paystub-overtime-hours" type="number" min="0" step="0.01"></label>
+            <label>Hourly rate<input id="hourly-rate" type="number" min="0" step="0.01"></label>
+            <label>Overtime rate<input id="overtime-rate" type="number" min="0" step="0.01"></label>
+            <label>Gross pay<input id="gross-pay" type="number" min="0" step="0.01"></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Tolerances</legend>
+            <label>Hour tolerance<input id="hour-tolerance" type="number" min="0" step="0.01" value="0.05"></label>
+            <label>Pay tolerance<input id="pay-tolerance" type="number" min="0" step="0.01" value="0.50"></label>
+          </fieldset>
+        </form>
+      </aside>
+
+      <section class="report-panel" aria-live="polite">
+        <div class="panel-title">
+          <h2>Payroll Check Result</h2>
+          <button id="compare-button" class="primary-button" type="button">Run check</button>
+        </div>
+        <p class="review-warning">Review every parsed field before running the check. A bad parser guess can create a bad report.</p>
+
+        <div id="summary-strip" class="summary-strip">
+          <div><span>Status</span><strong>Waiting</strong></div>
+          <div><span>Estimated difference</span><strong>$0.00</strong></div>
+          <div><span>Issues</span><strong>0</strong></div>
+        </div>
+
+        <div id="issue-list" class="issue-list empty">Upload documents or load the sample to start.</div>
+
+        <div class="message-box">
+          <div class="panel-title compact">
+            <h3>Suggested Payroll Message</h3>
+            <button id="copy-message" class="ghost-button" type="button">Copy</button>
+          </div>
+          <textarea id="payroll-message" rows="7" readonly>This tool will write a calm, specific message after it finds a mismatch.</textarea>
+        </div>
+
+        <p class="disclaimer">Estimate only. This is not legal, tax, or payroll advice. Confirm details with payroll, HR, or a qualified professional.</p>
+      </section>
+    </section>
+
+    <details class="raw-text">
+      <summary>Structured JSON</summary>
+      <div class="text-grid">
+        <div>
+          <h3>Timesheet JSON</h3>
+          <pre id="timesheet-json">No timesheet JSON yet.</pre>
+        </div>
+        <div>
+          <h3>Paystub JSON</h3>
+          <pre id="paystub-json">No paystub JSON yet.</pre>
+        </div>
+      </div>
+    </details>
+
+    <details class="raw-text">
+      <summary>Extracted document text</summary>
+      <div class="text-grid">
+        <div>
+          <h3>Timesheet text</h3>
+          <pre id="timesheet-text">No timesheet loaded.</pre>
+        </div>
+        <div>
+          <h3>Paystub text</h3>
+          <pre id="paystub-text">No paystub loaded.</pre>
+        </div>
+      </div>
+    </details>
+  </main>
+</body>
+</html>
