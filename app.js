@@ -11,6 +11,7 @@ const {
 
 const MAX_FILE_SIZE_MB = 10;
 const MAX_PAGES = 5;
+const FEEDBACK_EMAIL = "tag727@yahoo.com";
 
 if (!pdfjsLib) {
   throw new Error("PDF.js did not load.");
@@ -38,6 +39,17 @@ const fields = {
 const elements = {
   status: byId("status"),
   themeToggle: byId("theme-toggle"),
+  feedbackButton: byId("feedback-button"),
+  feedbackPanelButton: byId("feedback-panel-button"),
+  feedbackForm: byId("feedback-form"),
+  feedbackGoal: byId("feedback-goal"),
+  feedbackExpected: byId("feedback-expected"),
+  feedbackConfusing: byId("feedback-confusing"),
+  feedbackMath: byId("feedback-math"),
+  feedbackFeature: byId("feedback-feature"),
+  feedbackUseAgain: byId("feedback-use-again"),
+  feedbackReplyEmail: byId("feedback-reply-email"),
+  reportBadResult: byId("report-bad-result"),
   compareButton: byId("compare-button"),
   sampleButton: byId("sample-button"),
   clearButton: byId("clear-button"),
@@ -56,6 +68,9 @@ setupUpload("timesheet");
 setupUpload("paystub");
 
 elements.compareButton.addEventListener("click", runAudit);
+elements.feedbackButton.addEventListener("click", () => focusFeedbackForm());
+elements.reportBadResult.addEventListener("click", () => focusFeedbackForm("The result looked wrong or confusing."));
+elements.feedbackForm.addEventListener("submit", sendFeedbackEmail);
 elements.sampleButton.addEventListener("click", loadSample);
 elements.clearButton.addEventListener("click", clearAllData);
 elements.copyMessage.addEventListener("click", copyMessage);
@@ -278,6 +293,62 @@ function copyMessage() {
   elements.payrollMessage.select();
   document.execCommand("copy");
   setStatus("Payroll message copied");
+}
+
+function focusFeedbackForm(confusingText) {
+  if (confusingText && !elements.feedbackConfusing.value.trim()) {
+    elements.feedbackConfusing.value = confusingText;
+  }
+
+  elements.feedbackForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  elements.feedbackGoal.focus({ preventScroll: true });
+  setStatus("Feedback form ready");
+}
+
+function sendFeedbackEmail(event) {
+  event.preventDefault();
+
+  const values = readFormValues();
+  const subject = "PayMatch feedback";
+  const body = [
+    "What were you trying to do?",
+    cleanFeedback(elements.feedbackGoal.value),
+    "",
+    "Did the app give the result you expected?",
+    cleanFeedback(elements.feedbackExpected.value),
+    "",
+    "Was anything confusing?",
+    cleanFeedback(elements.feedbackConfusing.value),
+    "",
+    "Did the math look right?",
+    cleanFeedback(elements.feedbackMath.value),
+    "",
+    "What feature would make this more useful?",
+    cleanFeedback(elements.feedbackFeature.value),
+    "",
+    "Would you use this again?",
+    cleanFeedback(elements.feedbackUseAgain.value),
+    "",
+    "Optional reply email:",
+    cleanFeedback(elements.feedbackReplyEmail.value),
+    "",
+    "Testing details:",
+    `Pay period: ${values.payPeriodStart || "not entered"} to ${values.payPeriodEnd || "not entered"}`,
+    `Timesheet hours: ${values.timesheetTotalHours ?? "not entered"}`,
+    `Paystub regular/OT hours: ${values.paystubRegularHours ?? "not entered"} / ${values.paystubOvertimeHours ?? "not entered"}`,
+    `Hourly/OT rate: ${values.hourlyRate ?? "not entered"} / ${values.overtimeRate ?? "not entered"}`,
+    `Gross pay: ${values.grossPay ?? "not entered"}`,
+    "",
+    "Please do not attach sensitive pay documents unless you are comfortable sharing them. Remove SSN, address, employee ID, employer details, and other private information first."
+  ].join("\n");
+
+  window.location.href = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  setStatus("Opening feedback email");
+}
+
+function cleanFeedback(value) {
+  const trimmed = value.trim();
+  return trimmed === "" ? "No answer" : trimmed;
 }
 
 function setIfBlank(field, value) {

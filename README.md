@@ -57,6 +57,7 @@ ai pivot/
 - Report rendering uses DOM APIs and `textContent`, not `innerHTML`/`outerHTML`.
 - Private testing notice near the upload area.
 - Review-parsed-fields warning near the Run Check button.
+- In-app feedback form with trust, clarity, math, and privacy questions. It opens an email draft to the address set in `FEEDBACK_EMAIL` in `app.js`.
 - Clear all button to wipe form fields, extracted text, JSON, and report state.
 - Better messages for oversized, too-many-page, password-protected, broken, scanned, or unsupported PDFs.
 

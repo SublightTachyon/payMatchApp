@@ -29,6 +29,7 @@
         <p class="intro">Drop in a timesheet and paystub. The app reads what it can, lets you correct the fields, then checks hours, overtime, rates, and gross pay.</p>
       </div>
       <div class="status-stack">
+        <button id="feedback-button" class="ghost-button" type="button">Send feedback</button>
         <button id="theme-toggle" class="ghost-button" type="button" aria-pressed="false">Dark</button>
         <p id="status">Ready</p>
       </div>
@@ -65,6 +66,7 @@
     <section class="notice-panel" aria-label="Privacy and accuracy notice">
       <h2>Private Testing Notice</h2>
       <p>Privacy note: this prototype reads PDFs in your browser and does not upload them to a server. Do not use documents you are not comfortable testing with.</p>
+      <p>Before sharing documents for feedback, remove SSN, address, employee ID, employer details, and any other sensitive information.</p>
       <p>Review and correct the parsed fields before relying on the result. This tool provides an estimate only and is not legal, tax, payroll, or financial advice.</p>
     </section>
 
@@ -128,13 +130,65 @@
         <div class="message-box">
           <div class="panel-title compact">
             <h3>Suggested Payroll Message</h3>
-            <button id="copy-message" class="ghost-button" type="button">Copy</button>
+            <div class="button-row">
+              <button id="report-bad-result" class="ghost-button" type="button">Report bad result</button>
+              <button id="copy-message" class="ghost-button" type="button">Copy</button>
+            </div>
           </div>
           <textarea id="payroll-message" rows="7" readonly>This tool will write a calm, specific message after it finds a mismatch.</textarea>
         </div>
 
         <p class="disclaimer">Estimate only. This is not legal, tax, or payroll advice. Confirm details with payroll, HR, or a qualified professional.</p>
       </section>
+    </section>
+
+    <section class="feedback-panel" aria-label="Feedback request">
+      <div>
+        <h2>Help improve PayMatch</h2>
+        <p>Use the app, then send what happened. The most useful feedback is about clarity, trust, and whether the math feels checkable.</p>
+      </div>
+      <form id="feedback-form" class="feedback-form">
+        <label>What were you trying to do?
+          <textarea id="feedback-goal" rows="3"></textarea>
+        </label>
+        <label>Did the app give the result you expected?
+          <select id="feedback-expected">
+            <option value="">Choose one</option>
+            <option>Yes</option>
+            <option>Mostly</option>
+            <option>No</option>
+            <option>Not sure</option>
+          </select>
+        </label>
+        <label>Was anything confusing?
+          <textarea id="feedback-confusing" rows="3"></textarea>
+        </label>
+        <label>Did the math look right?
+          <select id="feedback-math">
+            <option value="">Choose one</option>
+            <option>Yes</option>
+            <option>Mostly</option>
+            <option>No</option>
+            <option>Not sure</option>
+          </select>
+        </label>
+        <label>What feature would make this more useful?
+          <textarea id="feedback-feature" rows="3"></textarea>
+        </label>
+        <label>Would you use this again?
+          <select id="feedback-use-again">
+            <option value="">Choose one</option>
+            <option>Yes</option>
+            <option>Maybe</option>
+            <option>No</option>
+          </select>
+        </label>
+        <label>Optional email if you want a reply
+          <input id="feedback-reply-email" type="email" autocomplete="email">
+        </label>
+        <p class="feedback-privacy">Do not include SSN, address, employee ID, employer details, or private pay document details unless you are comfortable sharing them.</p>
+        <button id="feedback-panel-button" class="primary-button" type="submit">Email feedback</button>
+      </form>
     </section>
 
     <details class="raw-text">
